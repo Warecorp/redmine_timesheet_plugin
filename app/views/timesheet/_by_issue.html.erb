@@ -20,8 +20,8 @@
 <br />
 <script type="text/javascript">
 function toggleTimeEntries(id) {
-$$('.issue-time-entry-' + id).each(function(ele) { ele.toggle();} )
-$$('.toggle-' + id).each(function(ele) { ele.toggle();} )
+$('.issue-time-entry-' + id).each(function() { $(this).toggle();} )
+$('.toggle-' + id).each(function() { $(this).toggle();} )
 }
 
 /*
