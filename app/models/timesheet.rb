@@ -1,5 +1,5 @@
 class Timesheet
-  attr_accessor :date_from, :date_to, :projects, :activities, :users, :groups, :allowed_projects, :period, :period_type
+  attr_accessor :date_from, :date_to, :projects, :activities, :users, :groups, :allowed_projects, :period, :period_type, :include_archived
 
   # Time entries on the Timesheet in the form of:
   #   project.name => {:logs => [time entries], :users => [users shown in logs] }
@@ -30,9 +30,10 @@ class Timesheet
     self.projects = [ ]
     self.time_entries = options[:time_entries] || { }
     self.potential_time_entry_ids = options[:potential_time_entry_ids] || [ ]
+    self.include_archived = options[:include_archived] == '1'
     self.allowed_projects = options[:allowed_projects] || [ ]
     self.groups = [ ]
-            
+
     unless options[:activities].nil?
       self.activities = options[:activities].collect do |activity_id|
         # Include project-overridden activities
@@ -51,7 +52,7 @@ class Timesheet
     else
       self.users = Timesheet.viewable_users.collect {|user| user.id.to_i }
     end
-    
+
     if User.current.allowed_to?(:see_all_project_timesheets, nil, :global => true)
       unless options[:groups].nil?
         self.groups= options[:groups].collect { |g| g.to_i }
@@ -64,7 +65,7 @@ class Timesheet
         self.groups= Group.all
       end
     end
-    
+
     if !options[:sort].nil? && options[:sort].respond_to?(:to_sym) && ValidSortOptions.keys.include?(options[:sort].to_sym)
       self.sort = options[:sort].to_sym
     else
@@ -135,6 +136,14 @@ class Timesheet
       self.date_from = self.date_to = nil
     end
     self
+  end
+
+  def allowed_projects=(allowed_projects)
+    @allowed_projects = allowed_projects
+    unless self.include_archived
+      @allowed_projects = @allowed_projects.find_all{ |p| !p.archived? }
+    end
+    @allowed_projects
   end
 
   def to_param
@@ -283,13 +292,13 @@ class Timesheet
       where(self.conditions(self.users)).
       order('spent_on ASC')
   end
-  
+
   def time_entries_for_all_users_in_group(group)
     return TimeEntry.includes(self.includes).
       where(self.conditions(group.user_ids)).
       order('spent_on ASC')
-  end 
-  
+  end
+
   def time_entries_for_current_user(project)
     return project.time_entries.
       includes(self.includes + [:activity, :user, {:issue => [:tracker, :assigned_to, :priority]}]).
@@ -350,7 +359,7 @@ class Timesheet
       end
     end
   end
-  
+
   def fetch_time_entries_by_group
     groups = Group.where(:id => self.groups)
     groups.each do |group|
@@ -372,7 +381,7 @@ class Timesheet
       end
     end
   end
- 
+
   def fetch_time_entries_by_user
     self.users.each do |user_id|
       logs = []
@@ -396,8 +405,8 @@ class Timesheet
       end
     end
   end
-  
-  
+
+
 
 
   #   project => { :users => [users shown in logs],
@@ -445,21 +454,21 @@ class Timesheet
     end
   end
 
-  
+
   def fetch_time_entries_by_date
 
- 
+
     #---------------------------------------------------
-    
+
     logs = []
 
     #           extra_conditions = 'GROUP_BY spent_on'
     logs=TimeEntry.includes(self.includes).where(self.conditions(self.users))
-       
-       
+
+
     unless logs.empty?
-   
-        
+
+
       logs.each do |log|
         date=log.spent_on
         logs_to_return=[]
@@ -468,8 +477,8 @@ class Timesheet
             logs_to_return << log2return
           end
         end
-     
-           
+
+
 
         self.time_entries[date] = { :logs => logs_to_return }
       end

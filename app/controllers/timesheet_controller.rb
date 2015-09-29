@@ -119,11 +119,11 @@ class TimesheetController < ApplicationController
   end
 
   def allowed_projects
-    if User.current.admin?
-      return Project.order('name ASC')
-    else
-      return Project.where(Project.visible_condition(User.current)).order('name ASC')
+    projects = Project.order('name ASC')
+    unless User.current.admin?
+      projects = projects.where(Project.visible_condition(User.current))
     end
+    projects
   end
 
   def clear_filters_from_session
@@ -137,7 +137,8 @@ class TimesheetController < ApplicationController
     end
 
     if session[SessionKey] && session[SessionKey]['projects']
-      @timesheet.projects = allowed_projects.find_all { |project|
+      @timesheet.allowed_projects = allowed_projects
+      @timesheet.projects = @timesheet.allowed_projects.find_all { |project|
         session[SessionKey]['projects'].include?(project.id.to_s)
       }
     end
