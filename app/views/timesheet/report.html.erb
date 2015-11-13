@@ -1,6 +1,6 @@
 <div class="contextual">
   <%= link_to_csv_export(@timesheet) %>
-  <%= permalink_to_timesheet(@timesheet) %>
+  <!-- <%= permalink_to_timesheet(@timesheet) %> -->
 </div>
 
 <h2><%= l(:timesheet_title)%></h2>
@@ -25,13 +25,13 @@
         <%= render :partial => 'timesheet_group', :locals => {:entry => entry, :name => entryname, :total => @total[entryname] } %>
       <% when :date %>
         <%#*entry[:logs].each do |log|%>
-        <% logger.debug "#{'*'*100}\n ENTRYNAME > #{entryname.to_yaml} ENTRY #{entry[:logs][0].id}\n#{'*'*100}"%> 
+        <% logger.debug "#{'*'*100}\n ENTRYNAME > #{entryname.to_yaml} ENTRY #{entry[:logs][0].id}\n#{'*'*100}"%>
 
         <h3><%= toggle_issue_arrows_date(entryname) %><%= h entryname -%> (<%= h number_with_precision(@total[entryname], :precision => @precision) %> <%= h(l(:field_hours)) -%>)</h3>
 
         <span class="<%= cycle("odd", "even") %> issue-time-entry-<%= entryname -%>" style="display:none;">
           <%= render :partial => 'timesheet_group', :locals => {:entry => entry, :name => entryname, :total => @total[entryname] } %>
-        </span> 
+        </span>
 
         <%#*end%>
         <script type="text/javascript">
@@ -57,7 +57,7 @@
         </script>
       <% else %>
         <%# Default to :project %>
-        <h3><%= h entryname -%> (<%= h number_with_precision(@total[entryname], :precision => @precision) %> <%= h(l(:field_hours)) -%>) <%= showing_users(entry[:users]) %></h3> 
+        <h3><%= h entryname -%> (<%= h number_with_precision(@total[entryname], :precision => @precision) %> <%= h(l(:field_hours)) -%>) <%= showing_users(entry[:users]) %></h3>
         <%= render :partial => 'timesheet_group', :locals => {:entry => entry, :name => entryname, :total => @total[entryname] } %>
 
       <% end

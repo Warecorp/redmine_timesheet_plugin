@@ -28,15 +28,17 @@ module TimesheetHelper
   end
 
   def link_to_csv_export(timesheet)
-    link_to('CSV',
+    query = CGI.unescape({ :timesheet => timesheet.to_param }.to_query)
+    form_params = query.split("&").map {|pair| pair.split("=")}
+    button_to('CSV',
       {
         :controller => 'timesheet',
         :action => 'report',
-        :format => 'csv',
-        :timesheet => timesheet.to_param
+        :format => 'csv'
       },
-      :method => 'post',
-      :class => 'icon icon-timesheet')
+      {
+        params: form_params
+      })
   end
 
   def toggle_issue_arrows(issue_id)
@@ -57,7 +59,7 @@ module TimesheetHelper
     )
 
   end
-  
+
     def toggle_issue_arrows_date(spent_on)
     js = "toggleTimeEntriesdate('#{spent_on}'); return false;"
 
@@ -76,8 +78,8 @@ module TimesheetHelper
     )
 
   end
-  
-  
+
+
 
   def displayed_time_entries_for_issue(time_entries)
     time_entries.collect(&:hours).sum
@@ -93,7 +95,7 @@ module TimesheetHelper
   def activity_options(timesheet, activities)
     options_from_collection_for_select(activities, :id, :name, timesheet.activities)
   end
-  
+
   def group_options(timesheet)
     available_groups = Group.all
     if timesheet.groups.first.class == Group
@@ -115,7 +117,7 @@ module TimesheetHelper
       selected_users)
 
   end
-  
+
   def options_for_period_select(value)
     options_for_select([[l(:label_all_time), 'all'],
                         [l(:label_today), 'today'],
