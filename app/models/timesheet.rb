@@ -153,8 +153,10 @@ class Timesheet
       :date_to => date_to,
       :activities => activities,
       :users => users,
-      :sort => sort
+      :sort => sort,
+      :include_archived => include_archived ? 1 : 0
     }
+
   end
 
   def to_csv
