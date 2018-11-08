@@ -15,22 +15,17 @@
           <label for="timesheet_date_from"><%= l(:timesheet_date_from_label)%></label>
         </div>
         <span id="select_timesheet_period_type_2" onclick="$('#timesheet_period_type_2').checked = true;">
-          <%= f.text_field "date_from", :size => 10 %><%= calendar_for('timesheet_date_from') %>
+          <%= f.date_field "date_from", :size => 10 %><%= calendar_for('timesheet_date_from') %>
           <label for="timesheet_date_to"><%= l(:timesheet_date_to_label)%></label>
-          <%= f.text_field "date_to", :size => 10 %><%= calendar_for('timesheet_date_to') %>
+          <%= f.date_field "date_to", :size => 10 %><%= calendar_for('timesheet_date_to') %>
         </span>
       </div>
-
-      <div>
-        <label for="timesheet_include_archived"><%= l(:timesheet_include_archived) %></label>
-        <%= check_box_tag("timesheet[include_archived]", '1', @timesheet.include_archived) %>
-      </div>
-
+      
       <div class="group-by">
         <label for="timesheet_sort"><%= l(:timesheet_group_by) %></label>
         <%= select_tag("timesheet[sort]", options_for_select(Timesheet::ValidSortOptions.invert, @timesheet.sort)) %>
       </div>
-
+      
       <div class="timesheet-projects">
         <label for="timesheet_projects_" class="select-all"><%= l(:timesheet_project_label)%></label>
         <%= select_tag 'timesheet[projects][]', project_options(@timesheet), { :multiple => true, :size => @list_size} %>
@@ -49,6 +44,10 @@
           <%= select_tag 'timesheet[groups][]', group_options(@timesheet), { :multiple => true, :size => @list_size} %>
         </div>
       <% end %>
+      <div class="timesheet-trackers">
+        <label for="timesheet_trackers_" class="select-all"><%= l(:label_tracker_plural)%></label>
+        <%= select_tag 'timesheet[trackers][]', tracker_options(@timesheet), { :multiple => true, :size => @list_size} %>
+      </div>
       <%= call_hook(:plugin_timesheet_view_timesheet_form, { :timesheet => @timesheet, :params => params, :list_size => @list_size }) %>
       <div class="form-actions">
         <%= submit_tag l(:button_apply),:class => 'button-small' -%>

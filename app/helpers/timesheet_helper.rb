@@ -28,58 +28,42 @@ module TimesheetHelper
   end
 
   def link_to_csv_export(timesheet)
-    query = CGI.unescape({ :timesheet => timesheet.to_param }.to_query)
-    form_params = query.split("&").map {|pair| pair.split("=")}
-    button_to('CSV',
+    link_to('CSV',
       {
         :controller => 'timesheet',
         :action => 'report',
-        :format => 'csv'
+        :format => 'csv',
+        :timesheet => timesheet.to_param
       },
-      {
-        params: form_params
-      })
+      :method => 'post',
+      :class => 'icon icon-timesheet')
+  end
+
+  def toggle_arrows(element, js_function)
+    js = "#{js_function}('#{element}');"
+
+    return toggle_arrow(element, 'toggle-arrow-closed.gif', js, false) +
+        toggle_arrow(element, 'toggle-arrow-open.gif', js, true)
+  end
+
+  def toggle_arrow(element, image, js, hide=false)
+    style = 'display:none;' if hide
+    style ||= ''
+
+    content_tag(:span,
+                link_to_function(image_tag(image, :plugin => "redmine_timesheet_plugin"), js),
+                :class => "toggle-" + element.to_s,
+                :style => style
+    )
   end
 
   def toggle_issue_arrows(issue_id)
-    js = "toggleTimeEntries('#{issue_id}'); return false;"
-
-    return toggle_issue_arrow(issue_id, 'toggle-arrow-closed.gif', js, false) +
-      toggle_issue_arrow(issue_id, 'toggle-arrow-open.gif', js, true)
+    return toggle_arrows(issue_id, 'toggleTimeEntriesIssue')
   end
-
-  def toggle_issue_arrow(issue_id, image, js, hide=false)
-    style = "display:none;" if hide
-    style ||= ''
-
-    content_tag(:span,
-      link_to_function(image_tag(image, :plugin => "redmine_timesheet_plugin"), js),
-      :class => "toggle-" + issue_id.to_s,
-      :style => style
-    )
-
+  
+  def toggle_issue_arrows_date(spent_on)
+    return toggle_arrows(spent_on, 'toggleTimeEntriesDate')
   end
-
-    def toggle_issue_arrows_date(spent_on)
-    js = "toggleTimeEntriesdate('#{spent_on}'); return false;"
-
-    return toggle_issue_arrow_date(spent_on, 'toggle-arrow-closed.gif', js, false) +
-      toggle_issue_arrow(spent_on, 'toggle-arrow-open.gif', js, true)
-  end
-
-  def toggle_issue_arrow_date(spent_on, image, js, hide=false)
-    style = "display:none;" if hide
-    style ||= ''
-
-    content_tag(:span,
-      link_to_function(image_tag(image, :plugin => "redmine_timesheet_plugin"), js),
-      :class => "toggle-" + spent_on.to_s,
-      :style => style
-    )
-
-  end
-
-
 
   def displayed_time_entries_for_issue(time_entries)
     time_entries.collect(&:hours).sum
@@ -95,7 +79,7 @@ module TimesheetHelper
   def activity_options(timesheet, activities)
     options_from_collection_for_select(activities, :id, :name, timesheet.activities)
   end
-
+  
   def group_options(timesheet)
     available_groups = Group.all
     if timesheet.groups.first.class == Group
@@ -105,6 +89,13 @@ module TimesheetHelper
     end
     selected_groups = available_groups.collect{|g| g.id} if selected_groups.blank?
     options_from_collection_for_select(available_groups, :id, :name, :selected =>timesheet.groups)
+  end
+
+  def tracker_options(timesheet)
+    available_trackers = Tracker.all
+    selected_trackers = timesheet.trackers
+    selected_trackers = available_trackers.collect{|g| g.id} if selected_trackers.blank?
+    options_from_collection_for_select(available_trackers, :id, :name, :selected =>timesheet.trackers)
   end
 
   def user_options(timesheet)
@@ -117,7 +108,7 @@ module TimesheetHelper
       selected_users)
 
   end
-
+  
   def options_for_period_select(value)
     options_for_select([[l(:label_all_time), 'all'],
                         [l(:label_today), 'today'],
