@@ -1,6 +1,6 @@
 class Timesheet
   attr_accessor :date_from, :date_to, :projects, :activities, :users, :groups, :trackers,
-    :allowed_projects, :period, :period_type
+    :allowed_projects, :period, :period_type, :include_archived
 
   # Time entries on the Timesheet in the form of:
   #   project.name => {:logs => [time entries], :users => [users shown in logs] }
