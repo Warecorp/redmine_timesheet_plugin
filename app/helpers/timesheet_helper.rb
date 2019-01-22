@@ -125,4 +125,13 @@ module TimesheetHelper
                         [l(:label_this_year), 'current_year']],
                         value)
   end
+
+
+  # Nikita Chirkov:
+  # Force using  old (JS) datepicker on timesheet page instead of using the native one.
+  def timesheet_calendar_for(field_id)
+    include_calendar_headers_tags
+    javascript_tag("$(function() { $('##{field_id}').addClass('date').datepicker(datepickerOptions); });")
+  end
+
 end
