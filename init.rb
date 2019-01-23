@@ -1,12 +1,13 @@
 require 'redmine'
 
-## Taken from lib/redmine.rb
-#if RUBY_VERSION < '1.9'
-#  require 'faster_csv'
-#else
-#  require 'csv'
-#  FCSV = CSV
-#end
+# Taken from lib/redmine.rb
+# Nikita Chirkov: uncommented as of https://github.com/arkhitech/redmine_timesheet_plugin/pull/81/
+if RUBY_VERSION < '1.9'
+ require 'faster_csv'
+else
+ require 'csv'
+ FCSV = CSV
+end
 
 if Rails::VERSION::MAJOR < 3
   require 'dispatcher'
