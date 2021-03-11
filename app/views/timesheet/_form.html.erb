@@ -5,7 +5,7 @@
         <div class="radiobutton-label">
           <%= f.radio_button :period_type, Timesheet::ValidPeriodType[:default]  %>
           <%f.label :period_type, l(:timesheet_date_range_label)%>
-          <label for="timesheet_period_type_1"><%= %></label>
+          <label for="timesheet_period_type_1"><%= l(:timesheet_date_range_label) %></label>
         </div>
         <%= select_tag 'timesheet[period]', options_for_period_select((params[:timesheet].nil? ? @timesheet.period : params[:timesheet][:period])),
           id: 'select_timesheet_period_type_1', :onfocus => '$("timesheet_period_type_1").checked = true;'%>
