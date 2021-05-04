@@ -1,6 +1,8 @@
 class Timesheet
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
   attr_accessor :date_from, :date_to, :projects, :activities, :users, :groups, :trackers,
-    :allowed_projects, :period, :period_type, :include_archived
+    :allowed_projects, :period, :period_type
 
   # Time entries on the Timesheet in the form of:
   #   project.name => {:logs => [time entries], :users => [users shown in logs] }
@@ -32,7 +34,6 @@ class Timesheet
     self.projects = [ ]
     self.time_entries = options[:time_entries] || { }
     self.potential_time_entry_ids = options[:potential_time_entry_ids] || [ ]
-    self.include_archived = options[:include_archived] == '1'
     self.allowed_projects = options[:allowed_projects] || [ ]
     self.groups = [ ]
     self.trackers = [ ]
@@ -55,7 +56,7 @@ class Timesheet
     else
       self.users = Timesheet.viewable_users.collect {|user| user.id.to_i }
     end
-
+    
     if User.current.allowed_to?(:see_all_project_timesheets, nil, :global => true)
       unless options[:groups].nil?
         self.groups= options[:groups].collect { |g| g.to_i }
@@ -150,14 +151,6 @@ class Timesheet
     self
   end
 
-  def allowed_projects=(allowed_projects)
-    @allowed_projects = allowed_projects
-    unless self.include_archived
-      @allowed_projects = @allowed_projects.find_all{ |p| !p.archived? }
-    end
-    @allowed_projects
-  end
-
   def to_param
     {
       :projects => projects.collect(&:id),
@@ -165,10 +158,8 @@ class Timesheet
       :date_to => date_to,
       :activities => activities,
       :users => users,
-      :sort => sort,
-      :include_archived => include_archived ? 1 : 0
+      :sort => sort
     }
-
   end
 
   def to_csv
@@ -265,7 +256,7 @@ class Timesheet
         condition_str << "spent_on >= ?"
         condition_params << self.date_from
       end
-
+      
       if self.date_to.present?
         condition_str << "spent_on <= ?"
         condition_params << self.date_to
@@ -276,7 +267,7 @@ class Timesheet
       end
       if self.activities.present?
         condition_str << "activity_id IN (?)"
-        condition_params << self.activities
+        condition_params << self.activities      
       end
     else
       condition_str << "#{TimeEntry.table_name}.id IN (?)"
@@ -284,13 +275,13 @@ class Timesheet
     end
     if users.present?
       condition_str << "user_id IN (?)"
-      condition_params << users
+      condition_params << users      
     end
 
     if trackers.present?
       condition_str << "tracker_id IN (?)"
-      condition_params << trackers
-    end
+      condition_params << trackers      
+    end     
 
     if extra_conditions
       condition_str << extra_conditions
@@ -373,7 +364,7 @@ class Timesheet
         # Users with the Role and correct permission can see all time entries
         logs = time_entries_for_all_users(project)
         users = logs.collect(&:user).uniq.sort
-      elsif User.current.allowed_to_on_single_potentially_archived_project?(:view_time_entries, project) && (self.users.empty? || self.users.include?(User.current.id))
+      elsif User.current.allowed_to_on_single_potentially_archived_project?(:view_time_entries, project) && (self.users.empty? || self.users.include?(User.current.id)) 
         # Users with permission to see their time entries
         logs = time_entries_for_current_user(project)
         users = logs.collect(&:user).uniq.sort
@@ -393,7 +384,7 @@ class Timesheet
       end
     end
   end
-
+  
   def fetch_time_entries_by_group
     groups = Group.where(:id => self.groups)
     groups.each do |group|
@@ -439,7 +430,7 @@ class Timesheet
       end
     end
   end
-
+  
 
   def fetch_time_entries_by_tracker
     trackers = Tracker.where(:id => self.trackers)
@@ -509,21 +500,21 @@ class Timesheet
     end
   end
 
-
+  
   def fetch_time_entries_by_date
 
-
+ 
     #---------------------------------------------------
-
+    
     logs = []
 
     #           extra_conditions = 'GROUP_BY spent_on'
     logs = TimeEntry.eager_load(self.includes).where(self.conditions(self.users, self.trackers))
-
-
+       
+       
     unless logs.empty?
-
-
+   
+        
       logs.each do |log|
         date=log.spent_on
         logs_to_return=[]
@@ -532,8 +523,8 @@ class Timesheet
             logs_to_return << log2return
           end
         end
-
-
+     
+           
 
         self.time_entries[date] = { :logs => logs_to_return }
       end

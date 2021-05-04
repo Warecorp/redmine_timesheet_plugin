@@ -2,9 +2,15 @@ class TimesheetController < ApplicationController
   unloadable
 
   layout 'base'
-  before_filter :get_list_size
-  before_filter :get_precision
-  before_filter :get_activities
+  if Rails::VERSION::MAJOR < 5  # < Rails 5
+    before_filter :get_list_size
+    before_filter :get_precision
+    before_filter :get_activities
+  else  # >= Rails 5
+    before_action :get_list_size
+    before_action :get_precision
+    before_action :get_activities
+  end
 
   helper :sort
   include SortHelper
@@ -119,11 +125,11 @@ class TimesheetController < ApplicationController
   end
 
   def allowed_projects
-    projects = Project.order('name ASC')
-    unless User.current.admin?
-      projects = projects.where(Project.visible_condition(User.current))
+    if User.current.admin?
+      return Project.order('name ASC')
+    else
+      return Project.where(Project.visible_condition(User.current)).order('name ASC')
     end
-    projects
   end
 
   def clear_filters_from_session
@@ -137,8 +143,7 @@ class TimesheetController < ApplicationController
     end
 
     if session[SessionKey] && session[SessionKey]['projects']
-      @timesheet.allowed_projects = allowed_projects
-      @timesheet.projects = @timesheet.allowed_projects.find_all { |project|
+      @timesheet.projects = allowed_projects.find_all { |project|
         session[SessionKey]['projects'].include?(project.id.to_s)
       }
     end
